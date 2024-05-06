@@ -36,7 +36,7 @@ const client = new MongoClient(uri, {
 
 // middleware
 const logger = (req, res, next) => {
-    console.log('called', req.host, req.originalUrl);
+    console.log('called', req.method, req.originalUrl);
     next();
 }
 const verifyToken = (req, res, next) => {
@@ -80,6 +80,11 @@ async function run() {
                 .send({ success: true })
 
         })
+        app.post('/logout', async (req, res) => {
+            const user = req.body;
+            console.log('logging out', user);
+            res.clearCookie('token', { maxAge: 0 }).send({ success: true })
+        })
 
         // services related api
         app.get('/services', logger, async (req, res) => {
@@ -103,13 +108,13 @@ async function run() {
 
 
         //booking 
-        app.get('/bookings', logger,verifyToken,  async (req, res) => {
+        app.get('/bookings', logger, verifyToken, async (req, res) => {
             console.log(req.query.email);
             //console.log('tok tok token', req.cookies.token);
 
             console.log('user in the valid token', req.user);
-            if( req.query.email !== req.user.email){
-               return res.status(403).send({message: 'forbidden access'})
+            if (req.query.email !== req.user.email) {
+                return res.status(403).send({ message: 'forbidden access' })
             }
             let query = {};
             if (req.query?.email) {
